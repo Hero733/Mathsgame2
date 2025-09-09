@@ -24,9 +24,20 @@ function login() {
     const username = document.getElementById('login-username').value.trim();
     const password = document.getElementById('login-password').value.trim();
     const profiles = JSON.parse(localStorage.getItem('profiles')) || {};
+
+    // ตรวจสอบบัญชี Admin
+    if (username === 'วินัย001' && password === '1717') {
+        currentUser = { username: username, password: password, isAdmin: true, wins: 0, losses: 0 };
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        alert("เข้าสู่ระบบ Admin สำเร็จ!");
+        window.location.href = 'home.html';
+        return;
+    }
     
+    // ตรวจสอบบัญชีผู้ใช้ทั่วไป
     if (profiles[username] && profiles[username].password === password) {
         currentUser = profiles[username];
+        currentUser.isAdmin = false; // ตรวจสอบให้แน่ใจว่าเป็นผู้ใช้ทั่วไป
         localStorage.setItem('currentUser', JSON.stringify(currentUser));
         alert("เข้าสู่ระบบสำเร็จ!");
         window.location.href = 'home.html';
@@ -59,6 +70,7 @@ function createAccount() {
         password: password, 
         wins: 0, 
         losses: 0,
+        isAdmin: false,
         // กำหนด URL ของรูปภาพเริ่มต้นให้เป็นรูปภาพแรก
         avatarUrl: characterImages['A']
     };
@@ -155,9 +167,17 @@ function startGame() {
 }
 
 function nextQuestion() {
+    const loggedInUser = JSON.parse(localStorage.getItem('currentUser'));
     if (currentQuestionIndex < selectedQuestions.length) {
         const currentQ = selectedQuestions[currentQuestionIndex];
-        document.getElementById('question-text').innerText = `(${currentQuestionIndex + 1}/20) ${currentQ.q}`;
+        let questionText = `(${currentQuestionIndex + 1}/20) ${currentQ.q}`;
+
+        // แสดงเฉลยสำหรับ Admin
+        if (loggedInUser && loggedInUser.isAdmin) {
+            questionText += ` (เฉลย: ${currentQ.a})`;
+        }
+
+        document.getElementById('question-text').innerText = questionText;
         document.getElementById('answer-input').value = '';
         document.getElementById('message').innerText = '';
         document.getElementById('answer-input').focus();
